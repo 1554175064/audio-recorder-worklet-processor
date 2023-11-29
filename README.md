@@ -1,18 +1,23 @@
 # audio-recorder-worklet-processor
-worklet录音，支持获取pcm、音量、wav、音频频谱数据
+
+worklet 录音，支持获取 pcm、音量、wav、音频频谱数据
 
 为了应对不同业务场景，很多情况不需要对音频数据做缓存，如实时转写等，所以这里不对音频数据做存储，仅提供原子能力
 
-如果业务有需求可以自己存储音频数据，再调用这里提供的方法转成PCM等格式（也可以自己写转换方法，这里仅提供PCM和WAV两种）
+如果业务有需求可以自己存储音频数据，再调用这里提供的方法转成 PCM 等格式（也可以自己写转换方法，这里仅提供 PCM 和 WAV 两种）
 
-
+浏览器支持
+charome 66+
+Firefox 64+
+Edge 79+
+Safari 15+
 
 #### DOC
 
 调用
 
 ```js
-import Recorder from 'audio-recorder-worklet-processor'
+import Recorder from "audio-recorder-worklet-processor";
 
 const recorder = new Recorder();
 ```
@@ -20,12 +25,10 @@ const recorder = new Recorder();
 或
 
 ```javascript
-<script type="text/javascript" src="../dist/index.js"></script>
+<script type="text/javascript" src="../dist/index.js"></script>;
 
 const recorder = new Recorder();
 ```
-
-
 
 初始化
 
@@ -50,7 +53,7 @@ interface IConfig {
 }
 
 // init(config?: IConfig): Promise<void>
-recorder.init(config)
+recorder.init(config);
 ```
 
 开始录音
@@ -72,16 +75,16 @@ recorder.stop();
 
 ```typescript
 //getAnalyserData(): Uint8Array
-recorder.getAnalyserData()
+recorder.getAnalyserData();
 ```
 
-process原始数据转PCM
+process 原始数据转 PCM
 
-如果使用这里的录音获取的数据sampleBits和littleEdian可以不传，如果用这个方法处理其他录音的数据则需要指定一下，否则可能返回数据有问题
+如果使用这里的录音获取的数据 sampleBits 和 littleEdian 可以不传，如果用这个方法处理其他录音的数据则需要指定一下，否则可能返回数据有问题
 
 ```typescript
   //**
-   * 
+   *
    * @param {Float32Array} bytes  process原数据
    * @param {number} sampleBits  采样位数，默认为init时的参数，未传入则为init默认值
    * @param {boolean} littleEdian  是否是小端字节序，未传入时根据系统自动判断
@@ -90,11 +93,11 @@ process原始数据转PCM
 recorder.encodePCM(bytes, sampleBits, littleEdian)
 ```
 
-PCM转WAV
+PCM 转 WAV
 
 ```typescript
    //**
-    * 
+    *
     * @param {DataView}  buffer PCM数据
     * @param {Float32Array} sampleRate  采样率，默认为init时的参数，未传入则为init默认值
     * @param {Float32Array} numChannels  声道数，默认为init时的参数，未传入则为init默认值
@@ -104,8 +107,6 @@ PCM转WAV
     */
 recorder.encodeWAV(buffer, sampleRate, numChannels, sampleBits, littleEdian)
 ```
-
-
 
 #### Example
 
@@ -161,4 +162,3 @@ recorder.encodeWAV(buffer, sampleRate, numChannels, sampleBits, littleEdian)
   </script>
 </html>
 ```
-

@@ -21,6 +21,7 @@
           open: true,
         },
         onDataProcess: (data) => {
+          console.log(data.vol);
           bufferArr.push(...data.buffer);
         },
       });
