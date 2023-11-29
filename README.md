@@ -8,9 +8,10 @@ worklet 录音，支持获取 pcm、音量、wav、音频频谱数据
 
 浏览器支持
 charome 66+
-Firefox 64+
+Firefox 76+
 Edge 79+
-Safari 15+
+Opera 53+
+Safari 14.1+
 
 #### DOC
 
