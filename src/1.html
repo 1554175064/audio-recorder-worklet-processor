@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="../dist/index.js"></script>
+  </head>
+  <body>
+    <button onclick="init()">init</button>
+    <button onclick="start()">start</button>
+    <button onclick="analyser()">analyser</button>
+    <button onclick="stop()">stop</button>
+  </body>
+  <script>
+    const recorder = new Recorder();
+    const bufferArr = [];
+    const init = () => {
+      recorder.init({
+        analyserOptions: {
+          open: true,
+        },
+        onDataProcess: (data) => {
+          bufferArr.push(...data.buffer);
+        },
+      });
+    };
+    const start = async () => {
+      await recorder.start();
+    };
+    const analyser = () => {
+      const data = recorder.getAnalyserData();
+      console.log("analyserData:", data);
+    };
+    const stop = async () => {
+      const duration = await recorder.stop();
+      console.log("duration:", duration);
+      //结束后可以将缓存数据转PCM
+      const pcmData = recorder.encodePCM(bufferArr);
+      //有需要可以转WAV
+      const wavData = recorder.encodeWAV(pcmData);
+      //下载等功能自行实现
+      const wavBlob = new Blob([wavData], { type: "audio/wav" });
+      let oA = document.createElement("a");
+      oA.href = window.URL.createObjectURL(wavBlob);
+      oA.download = "recorder.wav";
+      oA.click();
+    };
+  </script>
+</html>
