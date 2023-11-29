@@ -38,7 +38,7 @@ function writeString(data: DataView, offset: number, str: string): void {
 }
 
 class Recorder {
-  config: IConfig | null | undefined = {
+  private config: IConfig | null | undefined = {
     processOptions: {
       processSize: 4096,
       numChannels: 1,
@@ -50,13 +50,13 @@ class Recorder {
       fftSize: 512,
     },
   };
-  stream: null | MediaStream = null;
-  context: null | AudioContext = null;
-  workletNode: null | AudioWorkletNode = null;
-  microphone: null | MediaStreamAudioSourceNode = null;
-  analyserNode: null | AnalyserNode = null;
-  littleEdian: boolean = false; // 判断端字节序
-  status: "not ready" | "ready" | "recording" = "not ready";
+  private stream: null | MediaStream = null;
+  private context: null | AudioContext = null;
+  private workletNode: null | AudioWorkletNode = null;
+  private microphone: null | MediaStreamAudioSourceNode = null;
+  private analyserNode: null | AnalyserNode = null;
+  private littleEdian: boolean = false; // 判断端字节序
+  private status: "not ready" | "ready" | "recording" = "not ready";
   constructor() {
     this.littleEdian = (function () {
       let buffer = new ArrayBuffer(2);
@@ -65,7 +65,7 @@ class Recorder {
     })();
   }
   //关闭所有在使用的麦克
-  closeTracks() {
+  private closeTracks() {
     this.stream?.getTracks()?.forEach((track) => {
       // if (track.readyState === 'live') {
       track.stop();
