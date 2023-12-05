@@ -15,7 +15,7 @@ interface IConfig {
   //录音的实时回调，可以获取音频原始数据和音量区间0-1(觉得不敏感可以自己乘以倍率)
   onDataProcess?: (data: { vol: number; buffer: Float32Array }) => void;
   //process配置
-  processOptions: IProcessOptions;
+  processOptions?: IProcessOptions;
   //analyserNode配置，用来提供实时频率分析和时域分析的切点数据（可以用作数据分析和可视化）,默认不开启
   analyserOptions?: IAnalyserOptions;
 }
