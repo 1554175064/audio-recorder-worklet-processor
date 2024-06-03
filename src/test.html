@@ -17,12 +17,12 @@
     const bufferArr = [];
     const init = () => {
       recorder.init({
-        analyserOptions: {
-          open: true,
-        },
         onDataProcess: (data) => {
           console.log(data.vol);
           bufferArr.push(...data.buffer);
+        },
+        noiseReductionOptions: {
+          open: true,
         },
       });
     };

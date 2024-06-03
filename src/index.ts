@@ -7,10 +7,18 @@ interface IProcessOptions {
   sampleBits?: 16 | 8; //采样位数 一般8,16，默认16
   sampleRate?: number; //采样率 一般 11025、16000、22050、24000、44100、48000，默认为16000
 }
+
 interface IAnalyserOptions {
   open: boolean; //是否开启analyserNode，默认否
   fftSize: number; //具体含义可以看mdn的定义，简单来说数值越大精度越高，取值范围32-32768，默认512
 }
+
+interface INoiseReductionOptions {
+  open: boolean; //是否启用降噪，默认否
+  frequency?: number; //滤波器中心频率，默认1300Hz(人声主要在300-3400之间)
+  Q?: number; //滤波器品质因数，默认1(主要决定过滤带宽，如中心频率1300品质因数1.5，1300/1.5 = 650，则有效通过范围为1300-650到1300+650之间)
+}
+
 interface IConfig {
   //录音的实时回调，可以获取音频原始数据和音量区间0-1(觉得不敏感可以自己乘以倍率)
   onDataProcess?: (data: { vol: number; buffer: Float32Array }) => void;
@@ -18,6 +26,8 @@ interface IConfig {
   processOptions?: IProcessOptions;
   //analyserNode配置，用来提供实时频率分析和时域分析的切点数据（可以用作数据分析和可视化）,默认不开启
   analyserOptions?: IAnalyserOptions;
+  //降噪配置
+  noiseReductionOptions?: INoiseReductionOptions;
 }
 
 interface IStop {
@@ -49,14 +59,21 @@ class Recorder {
       open: false,
       fftSize: 512,
     },
+    noiseReductionOptions: {
+      open: false,
+      frequency: 1300,
+      Q: 1,
+    },
   };
   private stream: null | MediaStream = null;
   private context: null | AudioContext = null;
   private workletNode: null | AudioWorkletNode = null;
   private microphone: null | MediaStreamAudioSourceNode = null;
   private analyserNode: null | AnalyserNode = null;
+  private biquadFilter: null | BiquadFilterNode = null;
   private littleEdian: boolean = false; // 判断端字节序
   private status: "not ready" | "ready" | "recording" = "not ready";
+
   constructor() {
     this.littleEdian = (function () {
       let buffer = new ArrayBuffer(2);
@@ -64,6 +81,7 @@ class Recorder {
       return new Int16Array(buffer)[0] === 256;
     })();
   }
+
   //关闭所有在使用的麦克
   private closeTracks() {
     this.stream?.getTracks()?.forEach((track) => {
@@ -72,6 +90,7 @@ class Recorder {
       // }
     });
   }
+
   //初始化
   async init(config?: IConfig) {
     if (this.status === "recording") {
@@ -85,11 +104,17 @@ class Recorder {
       this.config.analyserOptions,
       config?.analyserOptions
     );
+    const noiseReductionOptions = Object.assign(
+      this.config.noiseReductionOptions,
+      config?.noiseReductionOptions
+    );
     Object.assign(this.config, config);
     this.config.processOptions = processOptions;
     this.config.analyserOptions = analyserOptions;
+    this.config.noiseReductionOptions = noiseReductionOptions;
     this.status = "ready";
   }
+
   //停止录音
   async stop() {
     if (this.status !== "recording") {
@@ -111,6 +136,7 @@ class Recorder {
     this.status = "ready";
     return duration;
   }
+
   //开始录音
   async start() {
     if (this.status === "not ready") {
@@ -157,8 +183,22 @@ class Recorder {
       }
     };
 
-    //绑定处理节点和输入
-    this.microphone.connect(this.workletNode).connect(this.context.destination);
+    //创建并配置降噪滤波器
+    if (this.config.noiseReductionOptions.open) {
+      this.biquadFilter = this.context.createBiquadFilter();
+      this.biquadFilter.type = "bandpass";
+      this.biquadFilter.frequency.value =
+        this.config.noiseReductionOptions.frequency;
+      this.biquadFilter.Q.value = this.config.noiseReductionOptions.Q;
+
+      // 连接滤波器
+      this.microphone.connect(this.biquadFilter).connect(this.workletNode);
+    } else {
+      // 直接连接
+      this.microphone.connect(this.workletNode);
+    }
+
+    this.workletNode.connect(this.context.destination);
 
     if (this.config.analyserOptions.open) {
       this.analyserNode = this.context.createAnalyser();
@@ -166,6 +206,7 @@ class Recorder {
       this.microphone.connect(this.analyserNode);
     }
   }
+
   //process源数据转pcm
   encodePCM(
     bytes: Float32Array,
@@ -199,6 +240,7 @@ class Recorder {
 
     return data;
   }
+
   //pcm转wav
   encodeWAV(
     buffer: DataView,
@@ -267,6 +309,7 @@ class Recorder {
 
     return dataView;
   }
+
   //获取音频频谱数据
   getAnalyserData() {
     if (!this.config.analyserOptions.open) {
@@ -281,4 +324,5 @@ class Recorder {
     return dataArray;
   }
 }
+
 export default Recorder;

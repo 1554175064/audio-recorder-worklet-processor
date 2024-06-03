@@ -44,6 +44,11 @@ interface IAnalyserOptions {
   open: boolean; //是否开启analyserNode，默认否
   fftSize: number; //具体含义可以看mdn的定义，简单来说数值越大精度越高，取值范围32-32768，默认512
 }
+interface INoiseReductionOptions {
+  open: boolean; //是否启用降噪，默认否
+  frequency?: number; //滤波器中心频率，默认1300Hz(人声主要在300-3400之间)
+  Q?: number; //滤波器品质因数，默认1(主要决定过滤带宽，如中心频率1300品质因数1.5，1300/1.5 = 650，则有效通过范围为1300-650到1300+650之间)
+}
 interface IConfig {
   //录音的实时回调，可以获取音频原始数据和音量区间0-1(觉得不敏感可以自己乘以倍率)
   onDataProcess?: (data: { vol: number; buffer: Float32Array }) => void;
@@ -51,6 +56,8 @@ interface IConfig {
   processOptions: IProcessOptions;
   //analyserNode配置，用来提供实时频率分析和时域分析的切点数据（可以用作数据分析和可视化）,默认不开启
   analyserOptions?: IAnalyserOptions;
+  //降噪配置
+  noiseReductionOptions?: INoiseReductionOptions;
 }
 
 // init(config?: IConfig): Promise<void>
